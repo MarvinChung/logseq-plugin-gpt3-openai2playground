@@ -104,84 +104,136 @@ const retryOptions = {
 //   return response.data.data[0].url;
 // }
 
+
+// function Chat(
+
+// )
+// {
+//   var headers = {
+//     'accept': 'application/json',
+//     'Authorization':
+//     'Content-Type': 'application/jsons'
+//   }
+//   return fetch(
+//     'https://create.mtkresearch.com/llm/api/v2/tasks',
+//     {
+//       method:'POST',
+//       headers: headers,
+//     }
+//   )
+// }
+
 export async function openAI(
   input: string,
   openAiOptions: OpenAIOptions
-): Promise<string | null> {
-  const options = { ...OpenAIDefaults(openAiOptions.apiKey), ...openAiOptions };
-  const engine = options.completionEngine!;
+): Promise<string> {
+    const apiKey = openAiOptions.apiKey;
+    const model = 'bloom-zh-1b1';
+  
+    // Create a FormData object and append the file
+    const formData = new FormData();
+    formData.append('model_type', model);
+    formData.append('prompt', input);
+  
+    // Send a request to the OpenAI API using a form post
+    const response = await backOff(
 
-  const configuration = new Configuration({
-    apiKey: options.apiKey,
-  });
-
-  const openai = new OpenAIApi(configuration);
-  try {
-    if (engine.startsWith("gpt-3.5") || engine.startsWith("gpt-4")) {
-      const inputMessages:ChatCompletionRequestMessage[] =  [{ role: "user", content: input }];
-      if (openAiOptions.chatPrompt && openAiOptions.chatPrompt.length > 0) {
-        inputMessages.unshift({ role: "system", content: openAiOptions.chatPrompt });
-
-      }
-      const response = await backOff(
-        () =>
-          openai.createChatCompletion({
-            messages: inputMessages,
-            temperature: options.temperature,
-            max_tokens: options.maxTokens,
-            top_p: 1,
-            frequency_penalty: 0,
-            presence_penalty: 0,
-            model: engine,
-          }),
-        retryOptions
-      );
-      const choices = response.data.choices;
-      if (
-        choices &&
-        choices[0] &&
-        choices[0].message &&
-        choices[0].message.content &&
-        choices[0].message.content.length > 0
-      ) {
-        return trimLeadingWhitespace(choices[0].message.content);
-      } else {
-        return null;
-      }
-    } else {
-      const response = await backOff(() =>
-        openai.createCompletion({
-          prompt: input,
-          temperature: options.temperature,
-          max_tokens: options.maxTokens,
-          top_p: 1,
-          frequency_penalty: 0,
-          presence_penalty: 0,
-          model: engine,
-        }),
-        retryOptions
-      );
-      const choices = response.data.choices;
-      if (
-        choices &&
-        choices[0] &&
-        choices[0].text &&
-        choices[0].text.length > 0
-      ) {
-        return trimLeadingWhitespace(choices[0].text);
-      } else {
-        return null;
-      }
+    () => fetch('https://create.mtkresearch.com/llm/api/v2/tasks', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+      },
+      body: formData,
+    }), retryOptions);
+  
+    // Check if the response status is OK
+    if (!response.ok) {
+      throw new Error(`Error transcribing audio: ${response.statusText}`);
     }
-  } catch (e: any) {
-    if (e?.response?.data?.error) {
-      console.error(e?.response?.data?.error);
-      throw new Error(e?.response?.data?.error?.message);
-    } else {
-      throw e;
-    }
+  
+    // Parse the response JSON and extract the transcription
+    const jsonResponse = await response.json();
+    return jsonResponse.outputs.text;
   }
-}
+
+// export async function openAI(
+//   input: string,
+//   openAiOptions: OpenAIOptions
+// ): Promise<string | null> {
+//   const options = { ...OpenAIDefaults(openAiOptions.apiKey), ...openAiOptions };
+//   const engine = options.completionEngine!;
+
+//   const configuration = new Configuration({
+//     apiKey: options.apiKey,
+//   });
+
+//   const openai = new OpenAIApi(configuration);
+//   try {
+//     if (engine.startsWith("gpt-3.5") || engine.startsWith("gpt-4")) {
+//       const inputMessages:ChatCompletionRequestMessage[] =  [{ role: "user", content: input }];
+//       if (openAiOptions.chatPrompt && openAiOptions.chatPrompt.length > 0) {
+//         inputMessages.unshift({ role: "system", content: openAiOptions.chatPrompt });
+
+//       }
+//       const response = await backOff(
+//         () =>
+//           openai.createChatCompletion({
+//             messages: inputMessages,
+//             temperature: options.temperature,
+//             max_tokens: options.maxTokens,
+//             top_p: 1,
+//             frequency_penalty: 0,
+//             presence_penalty: 0,
+//             model: engine,
+//           }),
+//         retryOptions
+//       );
+//       const choices = response.data.choices;
+//       if (
+//         choices &&
+//         choices[0] &&
+//         choices[0].message &&
+//         choices[0].message.content &&
+//         choices[0].message.content.length > 0
+//       ) {
+//         return trimLeadingWhitespace(choices[0].message.content);
+//       } else {
+//         return null;
+//       }
+//     } else {
+//       const response = await backOff(() =>
+//         openai.createCompletion({
+//           prompt: input,
+//           temperature: options.temperature,
+//           max_tokens: options.maxTokens,
+//           top_p: 1,
+//           frequency_penalty: 0,
+//           presence_penalty: 0,
+//           model: engine,
+//         }),
+//         retryOptions
+//       );
+//       const choices = response.data.choices;
+//       if (
+//         choices &&
+//         choices[0] &&
+//         choices[0].text &&
+//         choices[0].text.length > 0
+//       ) {
+//         return trimLeadingWhitespace(choices[0].text);
+//       } else {
+//         return null;
+//       }
+//     }
+//   } catch (e: any) {
+//     if (e?.response?.data?.error) {
+//       console.error(e?.response?.data?.error);
+//       throw new Error(e?.response?.data?.error?.message);
+//     } else {
+//       throw e;
+//     }
+//   }
+// }
 
 function trimLeadingWhitespace(s: string): string {
   return s.replace(/^\s+/, "");
