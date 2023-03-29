@@ -138,7 +138,16 @@ export async function openAI(
     // Send a request to the OpenAI API using a form post
     const response = await backOff(
 
-    () => fetch('https://create.mtkresearch.com/llm/api/v2/tasks', {
+    // () => fetch('https://create.mtkresearch.com/llm/api/v2/tasks', {
+    //   method: 'POST',
+    //   headers: {
+    //     'accept': 'application/json',
+    //     'Authorization': `Bearer ${apiKey}`
+    //   },
+    //   body: formData,
+    // }), retryOptions);
+  
+    () => fetch('https://create.mtkresearch.com/llm/api/v2/openapi/#/ModelInference/CreateTask', {
       method: 'POST',
       headers: {
         'accept': 'application/json',
@@ -146,7 +155,7 @@ export async function openAI(
       },
       body: formData,
     }), retryOptions);
-  
+
     // Check if the response status is OK
     if (!response.ok) {
       // throw new Error(`Error trascribing api: ${response.statusText}`);
