@@ -123,6 +123,11 @@ const retryOptions = {
 //   )
 // }
 
+function sleep(ms : number)
+{
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export async function openAI(
   input: string,
   openAiOptions: OpenAIOptions
@@ -133,27 +138,34 @@ export async function openAI(
     // Create a FormData object and append the file
     const formData = new FormData();
     formData.append('model_type', model);
+    formData.append('model_object', 'text completion');
     formData.append('prompt', input);
-  
+    formData.append('priority', 'high');
+
+
+    var object = {};
+    formData.forEach((value, key) => object[key] = value);
+    var myjson = JSON.stringify(object);
+    // myjson["prompts"] = [input,input,input]
+
+    // let myjson = [];
+    // myjson.push({
+    //   'model_type':model,
+    //   'prompts':[input,input,input]
+    // })
+
+    // 'accept': ['application/json','text/plain','*/*'],
     // Send a request to the OpenAI API using a form post
     const response = await backOff(
-
-    // () => fetch('https://create.mtkresearch.com/llm/api/v2/tasks', {
-    //   method: 'POST',
-    //   headers: {
-    //     'accept': 'application/json',
-    //     'Authorization': `Bearer ${apiKey}`
-    //   },
-    //   body: formData,
-    // }), retryOptions);
   
-    () => fetch('https://create.mtkresearch.com/llm/api/v2/openapi/#/ModelInference/CreateTask', {
+    () => fetch('https://create.mtkresearch.com/llm/api/v2/tasks', {
       method: 'POST',
       headers: {
         'accept': 'application/json',
+        // 'content-type': 'application/json',
         'Authorization': `Bearer ${apiKey}`
       },
-      body: formData,
+      body: myjson,
     }), retryOptions);
 
     // Check if the response status is OK
@@ -161,10 +173,33 @@ export async function openAI(
       // throw new Error(`Error trascribing api: ${response.statusText}`);
       throw new Error(`Error trascribing api: ${response}`);
     }
-  
+
     // Parse the response JSON and extract the transcription
-    const jsonResponse = await response.json();
-    return jsonResponse.outputs.text;
+    console.log(response.text)
+
+    const jsonResponse2 = await response.json();
+
+    await sleep(5000);
+
+    const response2 = await backOff(
+
+    () => fetch('https://create.mtkresearch.com/llm/api/v2/tasks/'+jsonResponse2["task"]["uuid"], {
+      method: 'GET',
+      headers: {
+        'accept': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
+      }
+    }), retryOptions);
+
+
+    // Check if the response status is OK
+    if (!response2.ok) {
+      // throw new Error(`Error trascribing api: ${response.statusText}`);
+      throw new Error(`Error trascribing api: ${response2}`);
+    }
+
+    const jsonResponse3 = await response2.json();
+    return jsonResponse3.task.outputs[0].text;
   }
 
 // export async function openAI(
