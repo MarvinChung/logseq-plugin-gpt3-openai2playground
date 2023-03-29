@@ -141,7 +141,8 @@ export async function openAI(
     () => fetch('https://create.mtkresearch.com/llm/api/v2/tasks', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
+        'accept': 'application/json',
+        'Authorization': `Bearer ${apiKey}`
       },
       body: formData,
     }), retryOptions);
