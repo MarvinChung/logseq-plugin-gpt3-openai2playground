@@ -18,7 +18,7 @@ export const settingsSchema: SettingSchemaDesc[] = [
   {
     key: "openAICompletionEngine",
     type: "string",
-    default: "gpt-3.5-turbo",
+    default: "bloom-zh-1b1",
     title: "Playground Completion Engine",
     description: "See Engines in Playground docs.",
   },
@@ -29,22 +29,22 @@ export const settingsSchema: SettingSchemaDesc[] = [
     title: "OpenAI Chat Prompt",
     description: "Initial message that tells ChatGPT how to answer. Only used for gpt-3.5. See https://platform.openai.com/docs/guides/chat/introduction for more info.",
   },
-  {
-    key: "openAITemperature",
-    type: "number",
-    default: 1.0,
-    title: "OpenAI Temperature",
-    description:
-      "The temperature controls how much randomness is in the output.",
-  },
-  {
-    key: "openAIMaxTokens",
-    type: "number",
-    default: 1000,
-    title: "OpenAI Max Tokens",
-    description:
-      "The maximum amount of tokens to generate. Tokens can be words or just chunks of characters. The number of tokens processed in a given API request depends on the length of both your inputs and outputs. As a rough rule of thumb, 1 token is approximately 4 characters or 0.75 words for English text. One limitation to keep in mind is that your text prompt and generated completion combined must be no more than the model's maximum context length (for most models this is 2048 tokens, or about 1500 words).",
-  },
+  // {
+  //   key: "openAITemperature",
+  //   type: "number",
+  //   default: 1.0,
+  //   title: "OpenAI Temperature",
+  //   description:
+  //     "The temperature controls how much randomness is in the output.",
+  // },
+  // {
+  //   key: "openAIMaxTokens",
+  //   type: "number",
+  //   default: 1000,
+  //   title: "OpenAI Max Tokens",
+  //   description:
+  //     "The maximum amount of tokens to generate. Tokens can be words or just chunks of characters. The number of tokens processed in a given API request depends on the length of both your inputs and outputs. As a rough rule of thumb, 1 token is approximately 4 characters or 0.75 words for English text. One limitation to keep in mind is that your text prompt and generated completion combined must be no more than the model's maximum context length (for most models this is 2048 tokens, or about 1500 words).",
+  // },
   {
     key: "injectPrefix",
     type: "string",

@@ -14,7 +14,7 @@ export interface OpenAIOptions {
 
 const OpenAIDefaults = (apiKey: string): OpenAIOptions => ({
   apiKey,
-  completionEngine: "gpt-3.5-turbo",
+  completionEngine: 'bloom-zh-1b1',
   temperature: 1.0,
   maxTokens: 1000,
   // dalleImageSize: 1024,
@@ -146,15 +146,7 @@ export async function openAI(
     var object = {};
     formData.forEach((value, key) => object[key] = value);
     var myjson = JSON.stringify(object);
-    // myjson["prompts"] = [input,input,input]
 
-    // let myjson = [];
-    // myjson.push({
-    //   'model_type':model,
-    //   'prompts':[input,input,input]
-    // })
-
-    // 'accept': ['application/json','text/plain','*/*'],
     // Send a request to the OpenAI API using a form post
     const response = await backOff(
   
