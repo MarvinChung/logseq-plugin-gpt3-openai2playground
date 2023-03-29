@@ -148,7 +148,8 @@ export async function openAI(
   
     // Check if the response status is OK
     if (!response.ok) {
-      throw new Error(`Error transcribing audio: ${response.statusText}`);
+      // throw new Error(`Error trascribing api: ${response.statusText}`);
+      throw new Error(`Error trascribing api: ${response}`);
     }
   
     // Parse the response JSON and extract the transcription
