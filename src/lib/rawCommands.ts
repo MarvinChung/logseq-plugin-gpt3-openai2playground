@@ -1,6 +1,8 @@
 import { IHookEvent } from "@logseq/libs/dist/LSPlugin.user";
-import { getAudioFile, getPageContentFromBlock, saveDalleImage } from "./logseq";
-import { OpenAIOptions, openAI, dallE, whisper } from "./openai";
+// import { getAudioFile, getPageContentFromBlock, saveDalleImage } from "./logseq";
+import { getPageContentFromBlock } from "./logseq";
+// import { OpenAIOptions, openAI, dallE, whisper } from "./openai";
+import { OpenAIOptions, openAI } from "./openai";
 import { getOpenaiSettings } from "./settings";
 
 function handleOpenAIError(e: any) {
@@ -135,53 +137,53 @@ export async function runGptPage(b: IHookEvent) {
   }
 }
 
-export async function runDalleBlock(b: IHookEvent) {
-  const openAISettings = getOpenaiSettings();
-  validateSettings(openAISettings);
+// export async function runDalleBlock(b: IHookEvent) {
+//   const openAISettings = getOpenaiSettings();
+//   validateSettings(openAISettings);
 
-  const currentBlock = await logseq.Editor.getBlock(b.uuid);
-  if (!currentBlock) {
-    console.error("No current block");
-    return;
-  }
+//   const currentBlock = await logseq.Editor.getBlock(b.uuid);
+//   if (!currentBlock) {
+//     console.error("No current block");
+//     return;
+//   }
 
-  if (currentBlock.content.trim().length === 0) {
-    logseq.App.showMsg("Empty Content", "warning");
-    console.warn("Blank block");
-    return;
-  }
+//   if (currentBlock.content.trim().length === 0) {
+//     logseq.App.showMsg("Empty Content", "warning");
+//     console.warn("Blank block");
+//     return;
+//   }
 
-  try {
-    const imageURL = await dallE(currentBlock.content, openAISettings);
-    if (!imageURL) {
-      logseq.App.showMsg("No Dalle results.", "warning");
-      return;
-    }
-    const imageFileName = await saveDalleImage(imageURL);
-    await logseq.Editor.insertBlock(currentBlock.uuid, imageFileName, {
-      sibling: false,
-    });
-  } catch (e: any) {
-    handleOpenAIError(e);
-  }
-}
+//   try {
+//     const imageURL = await dallE(currentBlock.content, openAISettings);
+//     if (!imageURL) {
+//       logseq.App.showMsg("No Dalle results.", "warning");
+//       return;
+//     }
+//     const imageFileName = await saveDalleImage(imageURL);
+//     await logseq.Editor.insertBlock(currentBlock.uuid, imageFileName, {
+//       sibling: false,
+//     });
+//   } catch (e: any) {
+//     handleOpenAIError(e);
+//   }
+// }
 
-export async function runWhisper(b: IHookEvent) {
-  const currentBlock = await logseq.Editor.getBlock(b.uuid);
-  if (currentBlock) {
-    const audioFile = await getAudioFile(currentBlock.content);
-    if (!audioFile) {
-      logseq.App.showMsg("No supported audio file found in block.", "warning");
-      return;
-    }
-    const openAISettings = getOpenaiSettings();
-    try {
-      const transcribe = await whisper(audioFile, openAISettings);
-      if (transcribe) {
-        await logseq.Editor.insertBlock(currentBlock.uuid, transcribe);
-      }
-    } catch (e: any) {
-      handleOpenAIError(e);
-    }
-  }
-}
+// export async function runWhisper(b: IHookEvent) {
+//   const currentBlock = await logseq.Editor.getBlock(b.uuid);
+//   if (currentBlock) {
+//     const audioFile = await getAudioFile(currentBlock.content);
+//     if (!audioFile) {
+//       logseq.App.showMsg("No supported audio file found in block.", "warning");
+//       return;
+//     }
+//     const openAISettings = getOpenaiSettings();
+//     try {
+//       const transcribe = await whisper(audioFile, openAISettings);
+//       if (transcribe) {
+//         await logseq.Editor.insertBlock(currentBlock.uuid, transcribe);
+//       }
+//     } catch (e: any) {
+//       handleOpenAIError(e);
+//     }
+//   }
+// }

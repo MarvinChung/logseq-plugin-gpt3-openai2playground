@@ -1,5 +1,6 @@
 import { SettingSchemaDesc } from "@logseq/libs/dist/LSPlugin";
-import { DalleImageSize, OpenAIOptions } from "./openai";
+// import { DalleImageSize, OpenAIOptions } from "./openai";
+import { OpenAIOptions } from "./openai";
 
 interface PluginOptions extends OpenAIOptions {
   injectPrefix?: string;
@@ -10,16 +11,16 @@ export const settingsSchema: SettingSchemaDesc[] = [
     key: "openAIKey",
     type: "string",
     default: "",
-    title: "OpenAI API Key",
+    title: "Playground API Key",
     description:
-      "Your OpenAI API key. You can get one at https://beta.openai.com",
+      "Your Playground API key. ",
   },
   {
     key: "openAICompletionEngine",
     type: "string",
     default: "gpt-3.5-turbo",
-    title: "OpenAI Completion Engine",
-    description: "See Engines in OpenAI docs.",
+    title: "Playground Completion Engine",
+    description: "See Engines in Playground docs.",
   },
   {
     key: "chatPrompt",
@@ -52,14 +53,14 @@ export const settingsSchema: SettingSchemaDesc[] = [
     description:
       "Prepends the output with this string. Such as a tag like [[gpt3]] or markdown like > to blockquote. Add a space at the end if you want a space between the prefix and the output or \\n for a linebreak.",
   },
-  {
-    key: "dalleImageSize",
-    type: "number",
-    default: 1024,
-    title: "DALL-E Image Size",
-    description:
-      "Size of the image to generate. Can be 256, 512, or 1024. Smaller images are faster to generate.",
-  },
+  // {
+  //   key: "dalleImageSize",
+  //   type: "number",
+  //   default: 1024,
+  //   title: "DALL-E Image Size",
+  //   description:
+  //     "Size of the image to generate. Can be 256, 512, or 1024. Smaller images are faster to generate.",
+  // },
   {
     key: "shortcutBlock",
     type: "string",
@@ -86,16 +87,16 @@ export function getOpenaiSettings(): PluginOptions {
   const injectPrefix = unescapeNewlines(logseq.settings!["injectPrefix"]);
   const temperature = Number.parseFloat(logseq.settings!["openAITemperature"]);
   const maxTokens = Number.parseInt(logseq.settings!["openAIMaxTokens"]);
-  const dalleImageSize = Number.parseInt(
-    logseq.settings!["dalleImageSize"]
-  ) as DalleImageSize;
+  // const dalleImageSize = Number.parseInt(
+  //   logseq.settings!["dalleImageSize"]
+  // ) as DalleImageSize;
   const chatPrompt = logseq.settings!["chatPrompt"];
   return {
     apiKey,
     completionEngine,
     temperature,
     maxTokens,
-    dalleImageSize,
+    // dalleImageSize,
     injectPrefix,
     chatPrompt,
   };
