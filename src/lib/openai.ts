@@ -133,18 +133,17 @@ export async function openAI(
   openAiOptions: OpenAIOptions
 ): Promise<string> {
     const apiKey = openAiOptions.apiKey;
-    const model = 'bloom-zh-1b1';
+    const options = { ...OpenAIDefaults(openAiOptions.apiKey), ...openAiOptions };
+    const model = options.completionEngine!;
+    // const model = 'bloom-zh-1b1';
   
-    // Create a FormData object and append the file
-    const formData = new FormData();
-    formData.append('model_type', model);
-    formData.append('model_object', 'text completion');
-    formData.append('prompt', input);
-    formData.append('priority', 'high');
+    var object = {
+      "model_type": model,
+      "model_object": "text completion",
+      "prompt": input,
+      "priority": "high"
+    };
 
-
-    var object = {};
-    formData.forEach((value, key) => object[key] = value);
     var myjson = JSON.stringify(object);
 
     // Send a request to the OpenAI API using a form post
@@ -169,13 +168,13 @@ export async function openAI(
     // Parse the response JSON and extract the transcription
     console.log(response.text)
 
-    const jsonResponse2 = await response.json();
+    const jsonResponse = await response.json();
 
     await sleep(5000);
 
-    const response2 = await backOff(
+    let llm_response = await backOff(
 
-    () => fetch('https://create.mtkresearch.com/llm/api/v2/tasks/'+jsonResponse2["task"]["uuid"], {
+    () => fetch('https://create.mtkresearch.com/llm/api/v2/tasks/'+jsonResponse["task"]["uuid"], {
       method: 'GET',
       headers: {
         'accept': 'application/json',
@@ -183,15 +182,14 @@ export async function openAI(
       }
     }), retryOptions);
 
-
     // Check if the response status is OK
-    if (!response2.ok) {
+    if (!llm_response.ok) {
       // throw new Error(`Error trascribing api: ${response.statusText}`);
-      throw new Error(`Error trascribing api: ${response2}`);
+      throw new Error(`Error trascribing api: ${llm_response}`);
     }
 
-    const jsonResponse3 = await response2.json();
-    return jsonResponse3.task.outputs[0].text;
+    const jsonResponseOutput = await llm_response.json();
+    return jsonResponseOutput.task.outputs[0].text;
   }
 
 // export async function openAI(
