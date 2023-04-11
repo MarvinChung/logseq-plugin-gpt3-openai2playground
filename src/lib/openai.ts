@@ -123,6 +123,79 @@ const retryOptions = {
 //   )
 // }
 
+// import { ExponentialBackOff } from 'backoff';
+
+// const fetchTaskWithBackoff = async (uuid: string, apiKey: string): Promise<Response> => {
+//   // const backoff = new ExponentialBackOff(retryOptions);
+
+//   return new Promise(async (resolve, reject) => {
+//     const tryFetch = async () => {
+//       try {
+//         const response = await fetch('https://create.mtkresearch.com/llm/api/v2/tasks/' + uuid, {
+//           method: 'GET',
+//           headers: {
+//             'accept': 'application/json',
+//             'Authorization': `Bearer ${apiKey}`,
+//           },
+//         });
+//         const jsonResponse = await response.json();
+//         if (jsonResponse.task.status === 'READY') {
+//           resolve(response);
+//         } else {
+//           backoff.backoff();
+//         }
+//       } catch (error) {
+//         reject(error);
+//       }
+//     };
+
+//     backoff.failAfter(retryOptions.numOfAttempts);
+//     backoff.on('backoff', tryFetch);
+//     backoff.on('fail', reject);
+//     tryFetch();
+//   });
+// };
+
+const fetchTaskWithBackoff = async (uuid: string, apiKey: string, retryOptions: { maxNumberOfRetry: number, initialDelay: number, maxDelay: number }): Promise<Response> => {
+  let retries = 0;
+  const delay = (duration: number) => new Promise(resolve => setTimeout(resolve, duration));
+
+  const tryFetch = async (): Promise<Response> => {
+    try {
+      const response = await fetch('https://create.mtkresearch.com/llm/api/v2/tasks/' + uuid, {
+        method: 'GET',
+        headers: {
+          'accept': 'application/json',
+          'Authorization': `Bearer ${apiKey}`,
+        },
+      });
+      if (!response.ok) {
+        // throw new Error(`Error trascribing api: ${response.statusText}`);
+        throw new Error(`Error trascribing api: ${response}`);
+      }
+      const jsonResponse = await response.json();
+      // console.log(jsonResponse.task)
+      if (jsonResponse["task"]["status"] === 'READY') {
+        return jsonResponse.task.outputs[0].text;
+      } else {
+        if (retries < retryOptions.maxNumberOfRetry) {
+          retries++;
+          const waitTime = Math.min(retryOptions.initialDelay * 2 ** (retries - 1), retryOptions.maxDelay);
+          await delay(waitTime);
+          return tryFetch();
+        } else {
+          throw new Error('Max number of retries reached');
+        }
+      }
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  return tryFetch();
+};
+
+
 function sleep(ms : number)
 {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -170,26 +243,21 @@ export async function openAI(
 
     const jsonResponse = await response.json();
 
-    await sleep(5000);
+    // await sleep(5000);
 
-    let llm_response = await backOff(
+    // let llm_response = await backOff(
 
-    () => fetch('https://create.mtkresearch.com/llm/api/v2/tasks/'+jsonResponse["task"]["uuid"], {
-      method: 'GET',
-      headers: {
-        'accept': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      }
-    }), retryOptions);
+    // () => fetch('https://create.mtkresearch.com/llm/api/v2/tasks/'+jsonResponse["task"]["uuid"], {
+    //   method: 'GET',
+    //   headers: {
+    //     'accept': 'application/json',
+    //     'Authorization': `Bearer ${apiKey}`
+    //   }
+    // }), retryOptions);
 
-    // Check if the response status is OK
-    if (!llm_response.ok) {
-      // throw new Error(`Error trascribing api: ${response.statusText}`);
-      throw new Error(`Error trascribing api: ${llm_response}`);
-    }
-
-    const jsonResponseOutput = await llm_response.json();
-    return jsonResponseOutput.task.outputs[0].text;
+    // let llm_response = await fetchTaskWithBackoff(jsonResponse["task"]["uuid"], apiKey);
+    let output_text = await fetchTaskWithBackoff(jsonResponse["task"]["uuid"], apiKey, { maxNumberOfRetry: 5, initialDelay: 500, maxDelay: 1000 });
+    return output_text;
   }
 
 // export async function openAI(
